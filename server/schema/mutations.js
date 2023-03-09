@@ -66,9 +66,59 @@ const mutation = new GraphQLObjectType({
         relativeId: { type: GraphQLID },
         relationship: { type: GraphQLString },
       },
-      resolve(parent, { godId, relativeId, relationship }) {
+      resolve(_, { godId, relativeId, relationship }) {
         return God.addRelative(godId, relativeId, relationship);
       },
+    },
+    addGodEmblem: {
+      type: GodType,
+      args: {
+        godId: { type: GraphQLID },
+        emblemId: { type: GraphQLID },
+      },
+      resolve(_, { godId, emblemId }) {
+        const god = God.findById(godId);
+        god.emblems.push(emblemId);
+        return god.save();
+      },
+    },
+    removeGodEmblem: {
+      type: GodType,
+      args: {
+        godId: { type: GraphQLID },
+        emblemId: { type: GraphQLID },
+      },
+      resolve(_, { godId, emblemId }) {
+        const god = God.findById(godId);
+        const idx = god.emblems.findIndex((id) => id === emblemId);
+        god.emblems.splice(idx, 1);
+        return god.save();
+      },
+    },
+    addGodDomain: {
+      type: GodType,
+      args: {
+        godId: { type: GraphQLID },
+        domain: { type: GraphQLString },
+      },
+      resolve(_, { godId, domain }) {
+        const god = God.findById(godId);
+        god.domains.push(domain);
+        return god.save();
+      },
+    },
+    removeGodDomain: {
+      type: GodType,
+      args: {
+        godId: { type: GraphQLID },
+        domain: { type: GraphQLString },
+      },
+      resolve(_, { godId, domain }) {
+        const god = God.findById(godId);
+        const idx = god.domains.findIndex((el) => el === domain);
+        god.domains.splice(idx, 1);
+        return god.save();
+      }
     },
     newAbode: {
       type: AbodeType,
