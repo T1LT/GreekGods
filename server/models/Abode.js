@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-mongoose.set("useCreateIndex", true);
 const Schema = mongoose.Schema;
 
 const AbodeSchema = new Schema({
