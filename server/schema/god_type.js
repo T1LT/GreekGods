@@ -10,6 +10,24 @@ const GodType = new GraphQLObjectType({
     type: { type: GraphQLString },
     description: { type: GraphQLString },
     domains: { type: new GraphQLList(GraphQLString) },
+    parents: {
+      type: new GraphQLList(GodType),
+      resolve(parent) {
+        return God.findRelatives(parent.id, "parents");
+      },
+    },
+    siblings: {
+      type: new GraphQLList(GodType),
+      resolve(parent) {
+        return God.findRelatives(parent.id, "siblings");
+      },
+    },
+    children: {
+      type: new GraphQLList(GodType),
+      resolve(parent) {
+        return God.findRelatives(parent.id, "children");
+      }
+    }
   }),
 });
 
