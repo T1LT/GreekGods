@@ -45,15 +45,42 @@ const GodSchema = new Schema({
   children: [
     {
       type: Schema.Types.ObjectId,
-      ref: "god"
-    }
-  ]
+      ref: "god",
+    },
+  ],
 });
 
 GodSchema.statics.findRelatives = function (godId, type) {
   return this.findById(godId)
     .populate(`${type}`)
     .then((god) => god[type]);
+};
+
+GodSchema.statics.addRelative = (godId, relativeId, relationship) => {
+  const God = mongoose.model("god");
+  return God.find({
+    _id: { $in: [godId, relativeId] },
+  }).then((gods) => {
+    const god = godId === gods[0].id ? gods[0] : gods[1];
+    const relative = relativeId === gods[0].id ? gods[0] : gods[1];
+    switch (relationship) {
+      case "parent":
+        god.parents.push(relative);
+        relative.children.push(god);
+        break;
+      case "child":
+        god.children.push(relative);
+        relative.parents.push(god);
+        break;
+      case "sibling":
+        god.siblings.push(relative);
+        relative.siblings.push(god);
+        break;
+    }
+    return Promise.all([god.save(), relative.save()]).then(
+      ([god, relative]) => god
+    );
+  });
 };
 
 module.exports = mongoose.model("god", GodSchema);
