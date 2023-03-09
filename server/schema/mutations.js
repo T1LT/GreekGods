@@ -59,6 +59,18 @@ const mutation = new GraphQLObjectType({
         );
       },
     },
+    updateGodAbode: {
+      type: GodType,
+      args: {
+        godId: { type: GraphQLID },
+        newAbodeId: { type: GraphQLID },
+      },
+      resolve(_, { godId, newAbodeId }) {
+        const god = God.findById(godId);
+        god.abode = newAbodeId;
+        return god.save();
+      }
+    },
     addGodRelative: {
       type: GodType,
       args: {
