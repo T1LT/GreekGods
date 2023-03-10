@@ -29,6 +29,8 @@ app.use(
   })
 );
 
+app.use(express.static("public"));
+
 const webpackMiddleware = require("webpack-dev-middleware");
 const webpack = require("webpack");
 const webpackConfig = require("../webpack.config.js");
