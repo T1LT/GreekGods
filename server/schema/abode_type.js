@@ -11,13 +11,13 @@ const AbodeType = new GraphQLObjectType({
     coordinates: { type: GraphQLString },
     gods: {
       type: new GraphQLList(require("./god_type")),
-      resolve(parent) {
-        return Abode.findById(parent.id)
+      resolve(parentValue) {
+        return Abode.findById(parentValue.id)
           .populate("gods")
-          .then((abode) => abode.gods);
-      },
-    },
-  }),
+          .then(abode => abode.gods);
+      }
+    }
+  })
 });
 
 module.exports = AbodeType;

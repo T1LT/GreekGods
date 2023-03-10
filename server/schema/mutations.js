@@ -1,17 +1,11 @@
 const graphql = require("graphql");
-const {
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLInt,
-  GraphQLID,
-  GraphQLNonNull,
-} = graphql;
+const { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLNonNull } = graphql;
 const mongoose = require("mongoose");
 const God = mongoose.model("god");
-const Abode = mongoose.model("abode");
-const Emblem = mongoose.model("emblem");
 const GodType = require("./god_type");
+const Abode = mongoose.model("abode");
 const AbodeType = require("./abode_type");
+const Emblem = mongoose.model("emblem");
 const EmblemType = require("./emblem_type");
 
 const mutation = new GraphQLObjectType({
@@ -22,33 +16,35 @@ const mutation = new GraphQLObjectType({
       args: {
         name: { type: GraphQLString },
         type: { type: GraphQLString },
-        description: { type: GraphQLString },
+        description: { type: GraphQLString }
       },
-      resolve(_, { name, type, description }) {
+      resolve(parentValue, { name, type, description }) {
         return new God({ name, type, description }).save();
-      },
+      }
     },
     deleteGod: {
       type: GodType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-      resolve(_, { id }) {
-        return God.findOneAndDelete({ _id: id });
-      },
+      resolve(parentValue, { id }) {
+        return God.remove({ _id: id });
+      }
     },
     updateGod: {
       type: GodType,
       args: {
-        id: { type: GraphQLID },
+        id: { type: new GraphQLNonNull(GraphQLID) },
         name: { type: GraphQLString },
         type: { type: GraphQLString },
-        description: { type: GraphQLString },
+        description: { type: GraphQLString }
       },
-      resolve(_, { id, name, type, description }) {
+      resolve(parentValue, { id, name, type, description }) {
         const updateObj = {};
-        updateObj.id = id;
+
+        if (id) updateObj.id = id;
         if (name) updateObj.name = name;
         if (type) updateObj.type = type;
         if (description) updateObj.description = description;
+
         return God.findOneAndUpdate(
           { _id: id },
           { $set: updateObj },
@@ -57,157 +53,148 @@ const mutation = new GraphQLObjectType({
             return god;
           }
         );
-      },
-    },
-    updateGodAbode: {
-      type: GodType,
-      args: {
-        godId: { type: GraphQLID },
-        newAbodeId: { type: GraphQLID },
-      },
-      resolve(_, { godId, newAbodeId }) {
-        const god = God.findById(godId);
-        god.abode = newAbodeId;
-        return god.save();
       }
     },
     addGodRelative: {
       type: GodType,
       args: {
-        godId: { type: GraphQLID },
-        relativeId: { type: GraphQLID },
-        relationship: { type: GraphQLString },
+        godId: { type: new GraphQLNonNull(GraphQLID) },
+        relativeId: { type: new GraphQLNonNull(GraphQLID) },
+        relationship: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve(_, { godId, relativeId, relationship }) {
+      resolve(parentValue, { godId, relativeId, relationship }) {
         return God.addRelative(godId, relativeId, relationship);
+      }
+    },
+    removeGodRelative: {
+      type: GodType,
+      args: {
+        godId: { type: new GraphQLNonNull(GraphQLID) },
+        relativeId: { type: new GraphQLNonNull(GraphQLID) },
+        relationship: { type: new GraphQLNonNull(GraphQLString) }
       },
+      resolve(parentValue, { godId, relativeId, relationship }) {
+        return God.removeRelative(godId, relativeId, relationship);
+      }
     },
     addGodEmblem: {
       type: GodType,
       args: {
-        godId: { type: GraphQLID },
-        emblemId: { type: GraphQLID },
+        godId: { type: new GraphQLNonNull(GraphQLID) },
+        emblemId: { type: new GraphQLNonNull(GraphQLID) }
       },
-      resolve(_, { godId, emblemId }) {
-        const god = God.findById(godId);
-        god.emblems.push(emblemId);
-        return god.save();
-      },
+      resolve(parentValue, { godId, emblemId }) {
+        return God.addEmblem(godId, emblemId);
+      }
     },
     removeGodEmblem: {
       type: GodType,
       args: {
-        godId: { type: GraphQLID },
-        emblemId: { type: GraphQLID },
+        godId: { type: new GraphQLNonNull(GraphQLID) },
+        emblemId: { type: new GraphQLNonNull(GraphQLID) }
       },
-      resolve(_, { godId, emblemId }) {
-        const god = God.findById(godId);
-        const idx = god.emblems.findIndex((id) => id === emblemId);
-        god.emblems.splice(idx, 1);
-        return god.save();
+      resolve(parentValue, { godId, emblemId }) {
+        return God.removeEmblem(godId, emblemId);
+      }
+    },
+    updateGodAbode: {
+      type: GodType,
+      args: {
+        godId: { type: new GraphQLNonNull(GraphQLID) },
+        abodeId: { type: new GraphQLNonNull(GraphQLID) }
       },
+      resolve(parentValue, { godId, abodeId }) {
+        return God.updateAbode(godId, abodeId);
+      }
     },
     addGodDomain: {
       type: GodType,
       args: {
-        godId: { type: GraphQLID },
-        domain: { type: GraphQLString },
+        godId: { type: new GraphQLNonNull(GraphQLID) },
+        domain: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve(_, { godId, domain }) {
-        const god = God.findById(godId);
-        god.domains.push(domain);
-        return god.save();
-      },
+      resolve(parentValue, { godId, domain }) {
+        return God.addDomain(godId, domain);
+      }
     },
     removeGodDomain: {
       type: GodType,
       args: {
-        godId: { type: GraphQLID },
-        domain: { type: GraphQLString },
+        godId: { type: new GraphQLNonNull(GraphQLID) },
+        domain: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve(_, { godId, domain }) {
-        const god = God.findById(godId);
-        const idx = god.domains.findIndex((el) => el === domain);
-        god.domains.splice(idx, 1);
-        return god.save();
+      resolve(parentValue, { godId, domain }) {
+        return God.removeDomain(godId, domain);
       }
     },
     newAbode: {
       type: AbodeType,
       args: {
         name: { type: GraphQLString },
-        coordinates: { type: GraphQLString },
+        coordinates: { type: GraphQLString }
       },
-      resolve(_, { name, coordinates }) {
+      resolve(parentValue, { name, coordinates }) {
         return new Abode({ name, coordinates }).save();
-      },
+      }
     },
     deleteAbode: {
       type: AbodeType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-      resolve(_, { id }) {
-        return Abode.findOneAndDelete({ _id: id });
-      },
+      resolve(parentValue, { id }) {
+        return Abode.remove({ _id: id });
+      }
     },
     updateAbode: {
       type: AbodeType,
       args: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString },
-        coordinates: { type: GraphQLString },
+        id: { type: new GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLString }
       },
-      resolve(_, { id, name, coordinates }) {
-        const updateObj = {};
-        updateObj.id = id;
-        if (name) updateObj.name = name;
-        if (coordinates) updateObj.coordinates = coordinates;
+      resolve(parentValue, { id, name }) {
         return Abode.findOneAndUpdate(
           { _id: id },
-          { $set: updateObj },
+          { $set: { name } },
           { new: true },
           (err, abode) => {
             return abode;
           }
         );
-      },
+      }
     },
     newEmblem: {
       type: EmblemType,
       args: {
-        name: { type: GraphQLString },
+        name: { type: GraphQLString }
       },
-      resolve(_, { name }) {
+      resolve(parentValue, { name }) {
         return new Emblem({ name }).save();
-      },
+      }
     },
     deleteEmblem: {
       type: EmblemType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-      resolve(_, { id }) {
-        return Emblem.findOneAndDelete({ _id: id });
-      },
+      resolve(parentValue, { id }) {
+        return Emblem.remove({ _id: id });
+      }
     },
     updateEmblem: {
       type: EmblemType,
       args: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString },
+        id: { type: new GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLString }
       },
-      resolve(_, { id, name }) {
-        const updateObj = {};
-        updateObj.id = id;
-        if (name) updateObj.name = name;
+      resolve(parentValue, { id, name }) {
         return Emblem.findOneAndUpdate(
           { _id: id },
-          { $set: updateObj },
+          { $set: { name } },
           { new: true },
           (err, emblem) => {
             return emblem;
           }
         );
-      },
-    },
-  },
+      }
+    }
+  }
 });
 
 module.exports = mutation;

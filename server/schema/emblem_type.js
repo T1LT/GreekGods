@@ -10,13 +10,13 @@ const EmblemType = new GraphQLObjectType({
     name: { type: GraphQLString },
     gods: {
       type: new GraphQLList(require("./god_type")),
-      resolve(parent) {
-        return Emblem.findById(parent.id)
+      resolve(parentValue) {
+        return Emblem.findById(parentValue.id)
           .populate("gods")
-          .then((emblem) => emblem.gods);
-      },
-    },
-  }),
+          .then(emblem => emblem.gods);
+      }
+    }
+  })
 });
 
 module.exports = EmblemType;
